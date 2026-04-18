@@ -3,8 +3,22 @@ from pydantic_settings import BaseSettings
 from typing import Optional, Literal
 from pydantic import Field, field_validator
 
-# Resolve .env from project root (parent of backend/)
-_env_file = Path(__file__).resolve().parent.parent.parent / ".env"
+# Try multiple possible locations for .env file
+_possible_env_paths = [
+    Path("/app/.env"),  # Docker container path
+    Path(__file__).resolve().parent.parent.parent / ".env",  # Project root
+    Path.cwd() / ".env",  # Current working directory
+]
+
+_env_file = None
+for path in _possible_env_paths:
+    if path.exists():
+        _env_file = path
+        break
+
+if _env_file is None:
+    # If none found, use Docker path as default
+    _env_file = Path("/app/.env")
 
 
 class Settings(BaseSettings):
