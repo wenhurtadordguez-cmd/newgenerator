@@ -228,18 +228,31 @@ Return ONLY valid JSON - no explanations."""
             )
 
             content = response.choices[0].message.content
+            logger.debug(f"Raw response from {provider}: {content[:500]}...")  # Log first 500 chars
 
+            # Extract JSON from response
             if "```json" in content:
                 content = content.split("```json")[1].split("```")[0]
             elif "```" in content:
                 content = content.split("```")[1].split("```")[0]
 
-            refined_data = json.loads(content.strip())
+            content = content.strip()
+            logger.debug(f"Extracted content for JSON parsing: {content[:200]}...")
+
+            # Validate JSON before parsing
+            refined_data = json.loads(content)
+            logger.debug(f"Successfully parsed JSON from {provider}")
+            
             refined_phishlet = Phishlet.model_validate(refined_data)
+            logger.info(f"Successfully refined phishlet with {provider}")
             return refined_phishlet
 
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error with {provider}: {e}")
+            logger.error(f"Failed to parse content: {content[:500] if 'content' in locals() else 'N/A'}")
+            raise
         except Exception as e:
-            logger.debug(f"Error with {provider}: {e}")
+            logger.error(f"Error with {provider}: {type(e).__name__}: {e}")
             raise
 
     def _build_analysis_summary(self, analysis: AnalysisResult) -> str:
