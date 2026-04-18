@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   backend:
     build: ./backend
@@ -50,7 +48,10 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    read_only: true
+    # Allow nginx to write to cache/temp directories
+    volumes:
+      - /var/cache/nginx
+      - /var/run
     deploy:
       resources:
         limits:
