@@ -223,21 +223,32 @@ Return ONLY valid JSON - no explanations."""
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.1,
-                max_tokens=4000,
+                max_tokens=8000,  # Increased from 4000 to accommodate full phishlet JSON
                 timeout=self.timeout,
             )
 
             content = response.choices[0].message.content
+            logger.debug(f"Raw response length: {len(content)} chars")
             logger.debug(f"Raw response from {provider}: {content[:500]}...")  # Log first 500 chars
 
-            # Extract JSON from response
+            # Extract JSON from response - look for JSON object patterns
             if "```json" in content:
                 content = content.split("```json")[1].split("```")[0]
             elif "```" in content:
                 content = content.split("```")[1].split("```")[0]
-
+            
             content = content.strip()
+            
+            # If content still looks like markdown, remove it
+            if content.startswith("```"):
+                content = content.split("\n", 1)[1]
+            if content.endswith("```"):
+                content = content.rsplit("\n", 1)[0]
+            
+            content = content.strip()
+            logger.debug(f"Extracted content length: {len(content)} chars")
             logger.debug(f"Extracted content for JSON parsing: {content[:200]}...")
+            logger.debug(f"Last 200 chars of content: ...{content[-200:]}")
 
             # Validate JSON before parsing
             refined_data = json.loads(content)
