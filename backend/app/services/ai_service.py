@@ -225,7 +225,6 @@ Return ONLY valid JSON - no explanations."""
                 temperature=0.1,
                 max_tokens=4000,
                 timeout=self.timeout,
-                retries=self.max_retries,
             )
 
             content = response.choices[0].message.content
