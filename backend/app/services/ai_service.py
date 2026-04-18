@@ -202,7 +202,7 @@ Return ONLY valid JSON - no explanations."""
     ) -> Optional[Phishlet]:
         """Call specific AI provider"""
         model_map = {
-            "groq": "groq/mixtral-8x7b-32768",
+            "groq": "groq/llama-3.1-70b-versatile",
             "anthropic": "claude-3-5-sonnet-20241022",
             "openai": "gpt-4o",
             "azure": "azure/gpt-4o",
@@ -282,7 +282,7 @@ Info:
         """Test connection to AI provider"""
         providers = [provider] if provider else self.provider_order
         model_map = {
-            "groq": "groq/mixtral-8x7b-32768",
+            "groq": "groq/llama-3.1-70b-versatile",
             "anthropic": "claude-3-5-sonnet-20241022",
             "openai": "gpt-4o",
             "azure": "azure/gpt-4o",

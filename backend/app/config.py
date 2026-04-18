@@ -34,7 +34,7 @@ class Settings(BaseSettings):
         },
         description="API keys for each AI provider"
     )
-    ai_model: str = "groq/mixtral-8x7b-32768"
+    ai_model: str = "groq/llama-3.1-70b-versatile"
     ai_provider_order: list[str] = [
         "groq", "anthropic", "openai", "azure", "google", "deepseek"
     ]
