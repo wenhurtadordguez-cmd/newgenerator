@@ -294,25 +294,30 @@ Info:
             try:
                 api_key = self.api_keys.get(prov)
                 if not api_key:
+                    logger.debug(f"No API key for {prov}")
                     continue
 
                 model = model_map.get(prov)
                 if not model:
+                    logger.debug(f"No model mapping for {prov}")
                     continue
 
-                await litellm.acompletion(
+                logger.info(f"Testing connection to {prov} with model {model}")
+                
+                # Make a quick test call
+                response = await litellm.acompletion(
                     model=model,
                     api_key=api_key,
                     messages=[{"role": "user", "content": "Reply with 'ok'"}],
                     max_tokens=5,
-                    timeout=10,
+                    timeout=15,
                 )
                 logger.info(f"AI provider {prov} is online")
                 return True
             except Exception as e:
-                logger.debug(f"Provider {prov} check failed: {e}")
+                logger.warning(f"Provider {prov} connection check failed: {type(e).__name__}: {str(e)}")
 
-        logger.warning("No AI providers available")
+        logger.warning("No AI providers available for connection check")
         return False
 
     def get_available_providers(self) -> list[str]:

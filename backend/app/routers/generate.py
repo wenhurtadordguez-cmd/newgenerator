@@ -68,11 +68,22 @@ async def generate_from_analysis(request: GenerateFromAnalysisRequest):
 
 @router.get("/ai-status")
 async def check_ai_status():
+    logger.info(f"AI Status Check - Enabled: {settings.ai_enabled}")
     if not settings.ai_enabled:
+        logger.warning("AI is disabled in settings")
         return {"enabled": False, "model": None, "connected": False}
 
+    logger.info(f"AI Provider Order: {settings.ai_provider_order}")
+    logger.info(f"Configured providers: {list(settings.ai_api_keys.keys())}")
+    
     ai = AIService()
+    logger.info(f"AI Service initialized with keys: {list(ai.api_keys.keys())}")
+    available = ai.get_available_providers()
+    logger.info(f"Available providers with keys: {available}")
+    
     connected = await ai.check_connection()
+    logger.info(f"Connection check result: {connected}")
+    
     return {
         "enabled": True,
         "model": settings.ai_model,
