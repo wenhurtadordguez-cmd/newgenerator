@@ -1,7 +1,7 @@
 from pathlib import Path
 from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator, ConfigDict
 from typing import Optional, Literal
-from pydantic import Field, field_validator
 
 # Try multiple possible locations for .env file
 _possible_env_paths = [
@@ -84,11 +84,12 @@ class Settings(BaseSettings):
     phishlets_data_dir: str = "./backend/data/phishlets"
     max_stored_phishlets: int = 1000
 
-    model_config = {
-        "env_file": str(_env_file),
-        "env_file_encoding": "utf-8",
-        "case_sensitive": False,
-    }
+    model_config = ConfigDict(
+        env_file=str(_env_file),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="allow",  # Allow extra environment variables (provider API keys)
+    )
 
     @field_validator("ai_provider_order")
     @classmethod
@@ -112,6 +113,32 @@ class Settings(BaseSettings):
             "http://127.0.0.1:3000",
         }
         return list(set(v) | localhost_variants)
+
+    def model_post_init(self, __context):
+        """Map individual provider API key env vars to ai_api_keys dict"""
+        import os
+        
+        # Map environment variable names to provider names
+        env_mappings = {
+            "groq_api_key": "groq",
+            "anthropic_api_key": "anthropic",
+            "openai_api_key": "openai",
+            "azure_api_key": "azure",
+            "google_api_key": "google",
+            "deepseek_api_key": "deepseek",
+        }
+        
+        # Check environment and extra attributes for API keys
+        for env_name, provider in env_mappings.items():
+            # Check if set via environment variable
+            env_value = os.getenv(env_name.upper())
+            if env_value:
+                self.ai_api_keys[provider] = env_value
+            # Also check for extra attributes that Pydantic might have picked up
+            elif hasattr(self, env_name.lower()):
+                extra_value = getattr(self, env_name.lower())
+                if extra_value:
+                    self.ai_api_keys[provider] = extra_value
 
     def get_enabled_ai_provider(self) -> Optional[str]:
         """Get first available AI provider from fallback chain"""
