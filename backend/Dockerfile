@@ -20,12 +20,17 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers
+# Install Playwright browsers and dependencies
+# Must run before switching to appuser so browsers are accessible
 RUN playwright install chromium && \
     playwright install-deps chromium
 
 # Copy application code
 COPY --chown=appuser:appuser app/ ./app/
+
+# Create and set permissions for Playwright cache directory
+RUN mkdir -p /home/appuser/.cache/ms-playwright && \
+    chown -R appuser:appuser /home/appuser/.cache
 
 # Switch to non-root user
 USER appuser
